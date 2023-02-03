@@ -649,7 +649,7 @@ STDP_sampling = pattern_interval
 visu = visualiseTime(sampling_interval=500)
 wd_rec = WeightDelayRecorder(sampling_interval=1.0, proj=Input_to_Conv_i[0])
 
-Input_spikes = LastSpikeRecorder(sampling_interval=1, pop=Input)
+Input_spikes = LastSpikeRecorder(sampling_interval=STDP_sampling, pop=Input)
 Conv_i_spikes = []
 Input_to_conv_i_delay_weight = []
 for i in range(NB_CONV_LAYERS):
