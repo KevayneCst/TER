@@ -60,23 +60,27 @@ x_margin = y_margin = 4
 
 input_events = np.zeros((0,4))
 for t in range(int(time_data/pattern_interval)):
-    direction = randint(0,1) # TODO randint(0,3) for 4 directions
-    if direction==0: # From bottom left to top right
+    direction = randint(0,3) # TODO randint(0,3) for 4 directions
+    if direction==0: # Pattern into bottom left
         start_x = randint(x_margin, x_input-pattern_duration-x_margin) # We leave a margin of 4 neurons on the edges of the input layer so that the whole movement can be seen by the convolution window
         start_y = randint(y_margin, y_input-pattern_duration-y_margin)
-        input_events = np.concatenate((
-            input_events,
-            [[start_x+d, start_y+d, 1, d+t*pattern_interval] for d in range(pattern_duration)]
-        ), axis=0)
+        input_events = np.concatenate((input_events, [[start_x+d, start_y+d, 1, d+t*pattern_interval] for d in range(pattern_duration)]), axis=0)
     
-    elif direction==1: # From bottom right to top left
+    elif direction==1: # Pattern into bottom right
         start_x = randint(x_input-x_margin-1, x_input-pattern_duration) # We leave a margin of 4 neurons on the edges of the input layer so that the whole movement can be seen by the convolution window
         start_y = randint(y_margin, y_input-pattern_duration-y_margin)
-        input_events = np.concatenate((
-            input_events,
-            [[start_x-d, start_y+d, 1, d+t*pattern_interval] for d in range(pattern_duration)]
-        ), axis=0)
-        
+        input_events = np.concatenate((input_events, [[start_x-d, start_y+d, 1, d+t*pattern_interval] for d in range(pattern_duration)]), axis=0)
+
+    elif direction==2: # Pattern into top right
+        start_x = randint(x_input-x_margin-1, x_input-pattern_duration) # We leave a margin of 4 neurons on the edges of the input layer so that the whole movement can be seen by the convolution window
+        start_y = randint(y_input-y_margin-1, y_input-pattern_duration)
+        input_events = np.concatenate((input_events, [[start_x-d, start_y-d, 1, d+t*pattern_interval] for d in range(pattern_duration)]), axis=0)
+
+    elif direction==3: # Pattern into top left
+        start_x = randint(x_margin, x_input-pattern_duration-x_margin) # We leave a margin of 4 neurons on the edges of the input layer so that the whole movement can be seen by the convolution window
+        start_y = randint(y_input-y_margin-1, y_input-pattern_duration)
+        input_events = np.concatenate((input_events, [[start_x+d, start_y-d, 1, d+t*pattern_interval] for d in range(pattern_duration)]), axis=0)
+
 input_spiketrain, _, _ = ev2spikes(input_events, width=x_input, height=y_input)
 
 
