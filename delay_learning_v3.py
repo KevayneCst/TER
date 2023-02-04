@@ -152,14 +152,11 @@ for i in range(NB_CONV_LAYERS):
         )
     )
 
-print(Input_to_Conv_i)
-
 # Establish Lateral Inhibition
 
 for idx_a in range(NB_CONV_LAYERS):
     for idx_b in range(NB_CONV_LAYERS):
         if idx_a != idx_b: # Avoid creating Lateral inhibition with himself
-            print("MPOKL Lateral inhibition - Conv"+str(idx_a+1)+" to Conv"+str(idx_b+1))
             Conv_rising_to_conv_falling = sim.Projection(
                 ConvLayers[idx_a], ConvLayers[idx_b],
                 connector = sim.OneToOneConnector(),
@@ -476,8 +473,8 @@ class LearningMechanisms(object):
                 self.input_last_spiking_times[pre_neuron] = self.input_spikes._spikes[pre_neuron]
                 print("PRE SPIKE {} : {}".format(pre_neuron, self.input_spikes._spikes[pre_neuron]))
 
-        print("OOOOLLL", self.output_spikes._spikes)
-        print("OOOMMM", self.output_spikes.global_spikes)
+        #print("OOOOLLL", self.output_spikes._spikes)
+        #print("OOOMMM", self.output_spikes.global_spikes)
         for post_neuron in range(self.output.size):
             if self.output_spikes._spikes[post_neuron] != -1 and self.check_activity_tags(post_neuron):
                 neuron_activity_tag[self.label][post_neuron] = True
@@ -541,8 +538,8 @@ class LearningMechanisms(object):
         self.DelayWeights.update_weights(self.DelayWeights.weight)
         
         ### HERE MODIFY 
-        print("\n\nIDK:", self.projection, " ET ", self.DelayWeights.delay)
-        print("IDK2", self.DelayWeights.delay.shape, type(self.DelayWeights.delay))
+        #print("\n\nIDK:", self.projection, " ET ", self.DelayWeights.delay)
+        #print("IDK2", self.DelayWeights.delay.shape, type(self.DelayWeights.delay))
         #self.projection.set(delay = np.ones((169, 81)) * 16) 
         self.projection.set(delay = self.DelayWeights.delay)
         self.projection.set(weight = self.DelayWeights.weight)
