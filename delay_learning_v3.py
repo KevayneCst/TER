@@ -31,6 +31,7 @@ sim.setup(timestep=0.01)
 # Constants
 NB_CONV_LAYERS = options.nb_convolution
 OUTPUT_PATH_GENERIC = "./output"
+SIZE_CONV_FILTER = 5
 
 if NB_CONV_LAYERS < 2:
     print("The number of convolution layers should be at least 2")
@@ -307,12 +308,12 @@ class visualiseTime(object):
         """
         Create and save a plot that contains for each convolution filter its delay matrix and associated weights of the current model state
         """
-        SIZE_CONV_FILTER = 5 # TODO change ?
         SAVED_FILE_NAME = self.OUTPUT_PATH_CURRENT_RUN + '/delays_and_weights_'+str(self.times_called)+".png"
         LOG_STR = ["Delays of convolution", "Weights of convolution"] # TODO change ?
         COLOR_MAP_TYPE = plt.cm.autumn # https://matplotlib.org/stable/tutorials/colors/colormaps.html
 
-        fig, axs = plt.subplots(nrows=NB_CONV_LAYERS, ncols=len(LOG_STR), sharex=True, figsize=(SIZE_CONV_FILTER, SIZE_CONV_FILTER))
+        SCALING_VALUE = SIZE_CONV_FILTER * ((NB_CONV_LAYERS - 2) * 1.25) # Make sure the plot is big enought depending on number of convolution used
+        fig, axs = plt.subplots(nrows=len(LOG_STR), ncols=NB_CONV_LAYERS, sharex=True, figsize=(SCALING_VALUE, SCALING_VALUE))
         for i in range(len(LOG_STR)): # Delay and Weight
             for layer_n in range(NB_CONV_LAYERS): # The number of convolution layer in the model
                 axs[i][layer_n].set_title(LOG_STR[i] + ' ' + str(layer_n))
