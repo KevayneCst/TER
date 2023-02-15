@@ -29,6 +29,7 @@ if sim == "nest":
 sim.setup(timestep=0.01)
 
 # Constants
+NB_DIRECTIONS = 4
 NB_CONV_LAYERS = options.nb_convolution
 OUTPUT_PATH_GENERIC = "./output"
 SIZE_CONV_FILTER = 5
@@ -58,9 +59,9 @@ x_margin = y_margin = 4
 
 # Dataset Generation
 
-input_events = np.zeros((0,4))
+input_events = np.zeros((0,4)) # 4 because : x, y, polarity, time
 for t in range(int(time_data/pattern_interval)):
-    direction = randint(0,3) # TODO randint(0,3) for 4 directions
+    direction = randint(0, NB_DIRECTIONS-1) # {NB_DIRECTIONS} directions
     if direction==0: # Pattern into bottom left
         start_x = randint(x_margin, x_input-pattern_duration-x_margin) # We leave a margin of 4 neurons on the edges of the input layer so that the whole movement can be seen by the convolution window
         start_y = randint(y_margin, y_input-pattern_duration-y_margin)
@@ -706,8 +707,8 @@ print("complete simulation run time:", dt.now() - start)
 
 if options.plot_figure :
 
-    extension = '_'+str(NB_CONV_LAYERS)+'directions'
-    title = "Delay learning - "+str(NB_CONV_LAYERS)+" directions"
+    extension = '_'+str(NB_DIRECTIONS)+'directions_'+str(NB_CONV_LAYERS)+'filters'
+    title = "Delay learning - "+ str(NB_DIRECTIONS)+ " directions - "+str(NB_CONV_LAYERS)+" filters"
     
     Conv_i_data = [conv_i.get_data().segments[0] for conv_i in ConvLayers]
 
