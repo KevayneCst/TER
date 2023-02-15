@@ -594,11 +594,11 @@ class LearningMechanisms(object):
         filter_coords = [input_coords[0]-convo_coords[0], input_coords[1]-convo_coords[1]]
 
         # And we actualize delay/weight of the filter after the STDP
-        print(pre_neuron, post_neuron)
-        print(np.unravel_index(pre_neuron, (13,13)))
-        print(np.unravel_index(post_neuron, (9,9)))
-        print(input_coords, convo_coords, filter_coords)
-        print(self.filter_d.shape, self.filter_w.shape)
+        #print(pre_neuron, post_neuron)
+        #print(np.unravel_index(pre_neuron, (13,13)))
+        #print(np.unravel_index(post_neuron, (9,9)))
+        #print(input_coords, convo_coords, filter_coords)
+        #print(self.filter_d.shape, self.filter_w.shape)
         self.filter_d[filter_coords[0]][filter_coords[1]] = max(0.01, min(self.filter_d[filter_coords[0]][filter_coords[1]]+delta_d, self.max_delay))
         self.filter_w[filter_coords[0]][filter_coords[1]] = max(0.05, self.filter_w[filter_coords[0]][filter_coords[1]]+delta_w)
 
@@ -664,7 +664,7 @@ STDP_sampling = pattern_interval
 ### Launch simulation
 
 visu = visualiseTime(sampling_interval=500)
-wd_rec = WeightDelayRecorder(sampling_interval=1.0, proj=Input_to_Conv_i[0])
+wd_rec = WeightDelayRecorder(sampling_interval=1, proj=Input_to_Conv_i[0])
 
 Input_spikes = LastSpikeRecorder(sampling_interval=STDP_sampling, pop=Input)
 Conv_i_spikes = []
@@ -710,13 +710,10 @@ if options.plot_figure :
     title = "Delay learning - "+str(NB_CONV_LAYERS)+" directions"
     
     Conv_i_data = [conv_i.get_data().segments[0] for conv_i in ConvLayers]
-    #Conv1_data = Conv1.get_data().segments[0]
-    #Conv2_data = Conv2.get_data().segments[0]
+
     Input_spikes = Input_spikes.get_spikes()
     Conv_i_spikes = [conv_i_spikes.get_spikes() for conv_i_spikes in Conv_i_spikes]
-    #Conv1_spikes = Conv1_spikes.get_spikes()
-    #Conv2_spikes = Conv2_spikes.get_spikes()
-    
+
     figure_filename = normalized_filename("Results", "delay_learning"+extension, "png", options.simulator)
 
     figure_params = []
@@ -730,18 +727,7 @@ if options.plot_figure :
     Figure(
         # raster plot of the event inputs spike times
         Panel(Input_spikes, xlabel="Input spikes", yticks=True, markersize=0.2, xlim=(0, time_data), ylim=(0, Input.size)),
-        # raster plot of the Reaction neurons spike times
-        #Panel(Conv1_spikes, xlabel="Conv1 spikes", yticks=True, markersize=0.2, xlim=(0, time_data), ylim=(0, Conv1.size)),
-        # raster plot of the Output1 neurons spike times
-        #Panel(Conv2_spikes, xlabel="Conv2 spikes", yticks=True, markersize=0.2, xlim=(0, time_data), ylim=(0, Conv2.size)),
-
-        # membrane potential of the Conv1 neurons
-        #Panel(Conv1_data.filter(name='v')[0], xlabel="Membrane potential (mV)\nConv1 layer", yticks=True, xlim=(0, time_data), linewidth=0.2, legend=False),
-        # membrane potential of the Conv2 neurons
-        #Panel(Conv2_data.filter(name='v')[0], xlabel="Membrane potential (mV)\nConv2 layer", yticks=True, xlim=(0, time_data), linewidth=0.2, legend=False),
-
         *figure_params,
-
         title=title,
         annotations="Simulated with "+ options.simulator.upper()
     ).save(figure_filename)
