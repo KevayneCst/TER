@@ -309,6 +309,44 @@ class visualiseTime(object):
         return t + self.interval
 
 
+    def recognize_movement(self, delay_matrix):
+        """
+        Return a string that contains the direction in which the input delay matrix has specialized.
+        For the moment, 5 possibles outputs:
+        - 4 diagonals : NORTH-EAST ; SOUTH-EAST ; SOUTH-WEST ; NORTH-WEST
+        - 1 no specialization : INDETERMINATE
+        """
+        def pred_movement(delay_matrix, rangeI, rangeJ, prevI, prevJ):
+            delay_matrix = delay_matrix.copy()
+            ignore_idx = [(rangeI[0]+prevI, rangeJ[0]+prevJ)]
+            for i, j in zip(rangeI, rangeJ):
+                ignore_idx.append((i, j))
+                if delay_matrix[i+prevI][j+prevJ] < delay_matrix[i][j]:
+                    return False
+
+            first_mvt_idx = ignore_idx[0]
+            first_mvt_idx_val = delay_matrix[first_mvt_idx[0]][first_mvt_idx[1]]
+
+            for idx in ignore_idx:
+                delay_matrix[idx[0]][idx[1]] = np.inf
+
+            if not np.amin(delay_matrix) > first_mvt_idx_val: # S'assurer que le délai min en dehors de la diagonale soit supérieur au délai du premier pixel du mouvement # TODO et ce, avec un écart d'au moins 0.2 ms
+                return False
+            return True
+
+        size_matrix = len(delay_matrix)
+        if pred_movement(delay_matrix, range(1, size_matrix), range(1, size_matrix), -1, -1):
+            return "SOUTH-EAST ↘︎" # HGBD
+        elif pred_movement(delay_matrix, range(size_matrix-2, -1, -1), range(size_matrix-2, -1, -1), 1, 1):
+            return "NORTH-WEST ↖︎" # BDHG
+        elif pred_movement(delay_matrix, range(1, size_matrix), range(size_matrix-2, -1, -1), -1, 1):
+            return "SOUTH-WEST ↙︎" # HDBG
+        elif pred_movement(delay_matrix, range(size_matrix-2, -1, -1), range(1, size_matrix), 1, -1):
+            return "NORTH-EAST ↗︎" # BGHD
+        else:
+            return "INDETERMINATE"
+
+
     def print_filters(self, t):
         """
         Create and save a plot that contains for each convolution filter its delay matrix and associated weights of the current model state
@@ -323,9 +361,13 @@ class visualiseTime(object):
         fig, axs = plt.subplots(nrows=len(LOG_STR), ncols=NB_CONV_LAYERS, sharex=True, figsize=(SCALING_VALUE, SCALING_VALUE))
         for i in range(len(LOG_STR)): # Delay and Weight
             for layer_n in range(NB_CONV_LAYERS): # The number of convolution layer in the model
+                data = final_filters[layer_n][i]
+                title = LOG_STR[i] + ' ' + str(layer_n)
+                if i == 0: # Delay matrix part
+                     title += '\n'+self.recognize_movement(data)
                 curr_matrix = axs[i][layer_n]
-                curr_matrix.set_title(LOG_STR[i] + ' ' + str(layer_n), fontsize=FONTSIZE)
-                im = curr_matrix.imshow(final_filters[layer_n][i], cmap=COLOR_MAP_TYPE)
+                curr_matrix.set_title(title, fontsize=FONTSIZE)
+                im = curr_matrix.imshow(data, cmap=COLOR_MAP_TYPE)
                 fig.colorbar(im, ax=curr_matrix, fraction=0.046, pad=0.04) # https://stackoverflow.com/a/26720422
         fig.suptitle('Delays and Weights kernel at t:'+str(t), fontsize=FONTSIZE)
         plt.tight_layout()
