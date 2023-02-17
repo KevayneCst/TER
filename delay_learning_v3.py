@@ -41,9 +41,9 @@ if NB_CONV_LAYERS < 2:
 
 ### Generate input data
 
-time_data = 1e3 # TODO de base 1e6, à réduire pour tests
-temporal_reduction = 1e3
-pattern_interval = 1e2
+time_data = 30_000 # TODO de base 1e6, à réduire pour tests
+temporal_reduction = 1_000
+pattern_interval = 100
 pattern_duration = 5
 num = time_data//pattern_interval
 
