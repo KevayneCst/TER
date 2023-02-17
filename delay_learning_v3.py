@@ -182,7 +182,7 @@ final_filters = [[] for _ in range(NB_CONV_LAYERS)]
 # Sometimes, even with lateral inhibition, two neurons on the same location in different convolution
 # layers will both spike (due to the minimum delay on those connections). So we keep track of
 # which neurons in each layer has already spiked for this stimulus. (Everything is put back to False at the end of the stimulus)
-neuron_activity_tag = [ [False for cell in range((x_input-filter_x+1)*(y_input-filter_y+1))]for conv in range(len(full_stop_condition)) ]
+neuron_activity_tag = [[False for _ in range((x_input-filter_x+1)*(y_input-filter_y+1))] for _ in range(NB_CONV_LAYERS)]
 
 
 ### Run simulation
@@ -740,7 +740,7 @@ for i in range(NB_CONV_LAYERS):
     growth_factor=growth_factor, 
     label=i))
 
-callback_list = [visu, wd_rec, Input_spikes, *Conv_i_spikes, *Input_to_conv_i_delay_weight, neuron_reset, *Learn_i]
+callback_list = [visu, wd_rec, Input_spikes, *Conv_i_spikes, *Input_to_conv_i_delay_weight, *Learn_i, neuron_reset]
 sim.run(time_data, callbacks=callback_list)
 
 print("complete simulation run time:", dt.now() - start)
