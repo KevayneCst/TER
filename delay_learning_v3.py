@@ -29,7 +29,8 @@ if sim == "nest":
 sim.setup(timestep=0.01)
 
 # Constants
-NB_DIRECTIONS = 4
+DIRECTIONS = {0: "SOUTH-WEST ↙︎", 1: "SOUTH-EAST ↘︎", 2: "NORTH-EAST ↗︎", 3: "NORTH-WEST ↖︎"}
+NB_DIRECTIONS = len(DIRECTIONS)
 NB_CONV_LAYERS = options.nb_convolution
 OUTPUT_PATH_GENERIC = "./output"
 SIZE_CONV_FILTER = 5
@@ -62,22 +63,22 @@ x_margin = y_margin = 4
 input_events = np.zeros((0,4)) # 4 because : x, y, polarity, time
 for t in range(int(time_data/pattern_interval)):
     direction = randint(0, NB_DIRECTIONS-1) # {NB_DIRECTIONS} directions
-    if direction==0: # Pattern into bottom left
+    if direction == 0:
         start_x = randint(x_margin, x_input-pattern_duration-x_margin) # We leave a margin of 4 neurons on the edges of the input layer so that the whole movement can be seen by the convolution window
         start_y = randint(y_margin, y_input-pattern_duration-y_margin)
         input_events = np.concatenate((input_events, [[start_x+d, start_y+d, 1, d+t*pattern_interval] for d in range(pattern_duration)]), axis=0)
     
-    elif direction==1: # Pattern into bottom right
+    elif direction == 1:
         start_x = randint(x_input-x_margin-1, x_input-pattern_duration) # We leave a margin of 4 neurons on the edges of the input layer so that the whole movement can be seen by the convolution window
         start_y = randint(y_margin, y_input-pattern_duration-y_margin)
         input_events = np.concatenate((input_events, [[start_x-d, start_y+d, 1, d+t*pattern_interval] for d in range(pattern_duration)]), axis=0)
 
-    elif direction==2: # Pattern into top right
+    elif direction == 2:
         start_x = randint(x_input-x_margin-1, x_input-pattern_duration) # We leave a margin of 4 neurons on the edges of the input layer so that the whole movement can be seen by the convolution window
         start_y = randint(y_input-y_margin-1, y_input-pattern_duration)
         input_events = np.concatenate((input_events, [[start_x-d, start_y-d, 1, d+t*pattern_interval] for d in range(pattern_duration)]), axis=0)
 
-    elif direction==3: # Pattern into top left
+    elif direction == 3:
         start_x = randint(x_margin, x_input-pattern_duration-x_margin) # We leave a margin of 4 neurons on the edges of the input layer so that the whole movement can be seen by the convolution window
         start_y = randint(y_input-y_margin-1, y_input-pattern_duration)
         input_events = np.concatenate((input_events, [[start_x+d, start_y-d, 1, d+t*pattern_interval] for d in range(pattern_duration)]), axis=0)
@@ -336,13 +337,13 @@ class visualiseTime(object):
 
         size_matrix = len(delay_matrix)
         if pred_movement(delay_matrix, range(1, size_matrix), range(1, size_matrix), -1, -1):
-            return "SOUTH-EAST ↘︎" # HGBD
+            return DIRECTIONS[1] # HGBD
         elif pred_movement(delay_matrix, range(size_matrix-2, -1, -1), range(size_matrix-2, -1, -1), 1, 1):
-            return "NORTH-WEST ↖︎" # BDHG
+            return DIRECTIONS[3] # BDHG
         elif pred_movement(delay_matrix, range(1, size_matrix), range(size_matrix-2, -1, -1), -1, 1):
-            return "SOUTH-WEST ↙︎" # HDBG
+            return DIRECTIONS[0] # HDBG
         elif pred_movement(delay_matrix, range(size_matrix-2, -1, -1), range(1, size_matrix), 1, -1):
-            return "NORTH-EAST ↗︎" # BGHD
+            return DIRECTIONS[2] # BGHD
         else:
             return "INDETERMINATE"
 
