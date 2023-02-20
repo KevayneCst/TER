@@ -29,15 +29,15 @@ if sim == "nest":
 sim.setup(timestep=0.01)
 
 # Constants
-DIRECTIONS = {0: "SOUTH-WEST ↙︎", 1: "SOUTH-EAST ↘︎", 2: "NORTH-EAST ↗︎", 3: "NORTH-WEST ↖︎"}
-NB_DIRECTIONS = len(DIRECTIONS)
 NB_CONV_LAYERS = options.nb_convolution
-OUTPUT_PATH_GENERIC = "./output"
-SIZE_CONV_FILTER = 5
-
 if NB_CONV_LAYERS < 2:
     print("The number of convolution layers should be at least 2")
     quit()
+
+DIRECTIONS = {0: "SOUTH-WEST ↙︎", 1: "SOUTH-EAST ↘︎", 2: "NORTH-EAST ↗︎", 3: "NORTH-WEST ↖︎"}
+NB_DIRECTIONS = min(len(DIRECTIONS), NB_CONV_LAYERS)
+OUTPUT_PATH_GENERIC = "./output"
+SIZE_CONV_FILTER = 5
 
 ### Generate input data
 
