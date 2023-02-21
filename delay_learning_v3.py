@@ -28,14 +28,14 @@ if sim == "nest":
 
 sim.setup(timestep=0.01)
 
-# Constants
+# Constants, variables
 NB_CONV_LAYERS = options.nb_convolution
 if NB_CONV_LAYERS < 2:
     print("The number of convolution layers should be at least 2")
     quit()
 
-DIRECTIONS = {0: "SOUTH-WEST ↙︎", 1: "SOUTH-EAST ↘︎", 2: "NORTH-EAST ↗︎", 3: "NORTH-WEST ↖︎"}
-NB_DIRECTIONS = min(len(DIRECTIONS), NB_CONV_LAYERS)
+DIRECTIONS = {-1: "INDETERMINATE", 0: "SOUTH-WEST ↙︎", 1: "SOUTH-EAST ↘︎", 2: "NORTH-EAST ↗︎", 3: "NORTH-WEST ↖︎"} # KEY=DIRECTIONS ID ; VALUE=STRING REPRESENTING THE DIRECTION
+NB_DIRECTIONS = min(len(DIRECTIONS)-1, NB_CONV_LAYERS) # No more than available directions, and at least 2 directions. -1 to ignore INDETERMINATE
 OUTPUT_PATH_GENERIC = "./output"
 SIZE_CONV_FILTER = 5
 
@@ -312,10 +312,10 @@ class visualiseTime(object):
 
     def recognize_movement(self, delay_matrix):
         """
-        Return a string that contains the direction in which the input delay matrix has specialized.
+        Return an int that indicates the direction in which the input delay matrix has specialized.
         For the moment, 5 possibles outputs:
-        - 4 diagonals : NORTH-EAST ; SOUTH-EAST ; SOUTH-WEST ; NORTH-WEST
-        - 1 no specialization : INDETERMINATE
+        - 4 diagonals : NORTH-EAST (2) ; SOUTH-EAST (1) ; SOUTH-WEST (3) ; NORTH-WEST (0)
+        - 1 no specialization : INDETERMINATE (-1)
         """
         def pred_movement(delay_matrix, rangeI, rangeJ, prevI, prevJ):
             delay_matrix = delay_matrix.copy()
@@ -337,15 +337,15 @@ class visualiseTime(object):
 
         size_matrix = len(delay_matrix)
         if pred_movement(delay_matrix, range(1, size_matrix), range(1, size_matrix), -1, -1):
-            return DIRECTIONS[1] # HGBD
+            return 1 # HGBD
         elif pred_movement(delay_matrix, range(size_matrix-2, -1, -1), range(size_matrix-2, -1, -1), 1, 1):
-            return DIRECTIONS[3] # BDHG
+            return 3 # BDHG
         elif pred_movement(delay_matrix, range(1, size_matrix), range(size_matrix-2, -1, -1), -1, 1):
-            return DIRECTIONS[0] # HDBG
+            return 0 # HDBG
         elif pred_movement(delay_matrix, range(size_matrix-2, -1, -1), range(1, size_matrix), 1, -1):
-            return DIRECTIONS[2] # BGHD
+            return 2 # BGHD
         else:
-            return "INDETERMINATE"
+            return -1
 
 
     def print_filters(self, t):
@@ -365,7 +365,8 @@ class visualiseTime(object):
                 data = final_filters[layer_n][i]
                 title = LOG_STR[i] + ' ' + str(layer_n)
                 if i == 0: # Delay matrix part
-                     title += '\n'+self.recognize_movement(data)
+                    movement_id = self.recognize_movement(data)
+                    title += '\n' + DIRECTIONS[movement_id]
                 curr_matrix = axs[i][layer_n]
                 curr_matrix.set_title(title, fontsize=FONTSIZE)
                 im = curr_matrix.imshow(data, cmap=COLOR_MAP_TYPE)
