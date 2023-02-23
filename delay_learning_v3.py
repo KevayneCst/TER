@@ -366,8 +366,8 @@ class visualiseTime(object):
                 data = final_filters[layer_n][i]
                 title = LOG_STR[i] + ' ' + str(layer_n)
                 if i == 0: # Delay matrix part
-                    movement_id = self.recognize_movement(data)
-                    title += '\n' + DIRECTIONS[movement_id]
+                    direction_id = self.recognize_movement(data)
+                    title += '\n' + DIRECTIONS[direction_id] + '(' + str(direction_id) + ')'
                 curr_matrix = axs[i][layer_n]
                 curr_matrix.set_title(title, fontsize=FONTSIZE)
                 im = curr_matrix.imshow(data, cmap=COLOR_MAP_TYPE)
