@@ -236,7 +236,7 @@ class LastSpikeRecorder(object):
                 for n in idx:
                     self.global_spikes[n].append(self._spikes[n])
 
-        return t+self.interval
+        #return t+self.interval
 
     def get_spikes(self):
         for n, s in enumerate(self.global_spikes):
@@ -261,7 +261,7 @@ class WeightDelayRecorder(object):
         self._weights.append(self.weight)
         self._delays.append(self.delay)
 
-        return t+self.interval
+        #return t+self.interval
 
     def update_weights(self, w):
         assert self._weights[-1].shape == w.shape
@@ -308,7 +308,7 @@ class visualiseTime(object):
         if t > 1 and int(t) % pattern_interval==0:
             self.print_filters(t)
 
-        return t + self.interval
+        #return t + self.interval
 
 
     def recognize_movement(self, delay_matrix):
@@ -417,7 +417,7 @@ class NeuronReset(object):
                 pulse.inject_into(self.populations)
 
             self.interval = pattern_interval
-        return t + self.interval
+        #return t + self.interval
 
 
 class InputClear(object):
@@ -438,7 +438,7 @@ class InputClear(object):
             except:
                 pass
             self.interval = pattern_interval
-        return t + self.interval
+        #return t + self.interval
 
 
 class LearningMechanisms(object):
@@ -503,7 +503,7 @@ class LearningMechanisms(object):
 
         if t == 0 :
             print("No data")
-            return t + pattern_interval
+            return #t + pattern_interval
 
         self.call_count += 1
         final_filters[self.label] = [self.filter_d, self.filter_w]
@@ -600,7 +600,7 @@ class LearningMechanisms(object):
 
         # We update the list that tells if this layer has finished learning the delays and weights
         full_stop_condition[self.label] = self.full_stop_check()
-        return t + pattern_interval
+        #return t + pattern_interval
 
     # Computes the delay delta by applying the STDP
     def G(self, delta_t):
@@ -686,6 +686,21 @@ class LearningMechanisms(object):
         return True
 
 
+class callbacks_(object):
+    def __init__(self, sampling_interval):
+        self.call_order = []
+        self.interval = sampling_interval
+
+    def add_object(self,obj):
+        self.call_order.append(obj)
+
+    def __call__(self,t):
+        for obj in self.call_order:
+            if t%obj.interval == 0 and t != 0:
+                obj.__call__(t)
+        return t + self.interval
+
+
 ### Simulation parameters
 
 growth_factor = (0.001/pattern_interval)*pattern_duration # <- juste faire *duration dans STDP We increase each delay by this constant each step
@@ -719,9 +734,6 @@ for i in range(NB_CONV_LAYERS):
     Conv_i_spikes.append(LastSpikeRecorder(sampling_interval=STDP_sampling, pop=ConvLayers[i]))
     Input_to_conv_i_delay_weight.append(WeightDelayRecorder(sampling_interval=STDP_sampling, proj=Input_to_Conv_i[i]))
 
-neuron_reset = NeuronReset(sampling_interval=pattern_interval-15, pops=ConvLayers) # TODO give a copy ? previous: pops=[Conv1, Conv2]
-# input_clear = InputClear(sampling_interval=pattern_interval+1, pops_to_clear_data=Input)
-
 Learn_i = []
 for i in range(NB_CONV_LAYERS):
     Learn_i.append(LearningMechanisms(sampling_interval=STDP_sampling, 
@@ -743,8 +755,14 @@ for i in range(NB_CONV_LAYERS):
     growth_factor=growth_factor, 
     label=i))
 
+neuron_reset = NeuronReset(sampling_interval=pattern_interval-15, pops=ConvLayers)
+# input_clear = InputClear(sampling_interval=pattern_interval+1, pops_to_clear_data=Input)
+
+callbacks = callbacks_(sampling_interval=1)
 callback_list = [visu, wd_rec, Input_spikes, *Conv_i_spikes, *Input_to_conv_i_delay_weight, *Learn_i, neuron_reset]
-sim.run(time_data, callbacks=callback_list)
+for obj in callback_list:
+    callbacks.add_object(obj)
+sim.run(time_data, callbacks=[callbacks])
 
 print("complete simulation run time:", dt.now() - start)
 
