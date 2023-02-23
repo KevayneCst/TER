@@ -179,12 +179,17 @@ for idx_a in range(NB_CONV_LAYERS):
 
 # We will use this list to know which convolution layer has reached its stop condition
 full_stop_condition= [False] * NB_CONV_LAYERS
+
 # Each filter of each convolution layer will be put in this list and actualized at each stimulus
 final_filters = [[] for _ in range(NB_CONV_LAYERS)]
+
 # Sometimes, even with lateral inhibition, two neurons on the same location in different convolution
 # layers will both spike (due to the minimum delay on those connections). So we keep track of
 # which neurons in each layer has already spiked for this stimulus. (Everything is put back to False at the end of the stimulus)
 neuron_activity_tag = [[False for _ in range((x_input-filter_x+1)*(y_input-filter_y+1))] for _ in range(NB_CONV_LAYERS)]
+
+# When a convolution layer will be specialized, we put in this dict in which direction
+conv_to_direction = {} # KEY=CONV_ID ; VALUE=DIRECTION_ID
 
 
 ### Run simulation
@@ -367,6 +372,10 @@ class visualiseTime(object):
                 title = LOG_STR[i] + ' ' + str(layer_n)
                 if i == 0: # Delay matrix part
                     direction_id = self.recognize_movement(data)
+                    if direction_id != -1: # Not INDETERMINATED
+                        conv_to_direction[layer_n] = direction_id
+                    else:
+                        conv_to_direction.pop(layer_n, None)
                     title += '\n' + DIRECTIONS[direction_id] + '(' + str(direction_id) + ')'
                 curr_matrix = axs[i][layer_n]
                 curr_matrix.set_title(title, fontsize=FONTSIZE)
@@ -783,10 +792,12 @@ if options.plot_figure :
     figure_params = []
     # Add reaction neurons spike times
     for i in range(NB_CONV_LAYERS):
-        figure_params.append(Panel(Conv_i_spikes[i], xlabel="Conv"+str(i+1)+" spikes", yticks=True, markersize=0.2, xlim=(0, time_data), ylim=(0, ConvLayers[i].size)))
+        direction_id_of_conv = -1 if i not in conv_to_direction else conv_to_direction[i]
+        direction_str = DIRECTIONS[direction_id_of_conv]
+        figure_params.append(Panel(Conv_i_spikes[i], xlabel="Conv"+str(i)+" spikes - "+direction_str+"("+str(direction_id_of_conv)+")", yticks=True, markersize=0.2, xlim=(0, time_data), ylim=(0, ConvLayers[i].size)))
 
     for i in range(NB_CONV_LAYERS):
-        figure_params.append(Panel(Conv_i_data[i].filter(name='v')[0], xlabel="Membrane potential (mV) - Conv"+str(i+1)+" layer", yticks=True, xlim=(0, time_data), linewidth=0.2, legend=False))
+        figure_params.append(Panel(Conv_i_data[i].filter(name='v')[0], xlabel="Membrane potential (mV) - Conv"+str(i)+" layer", yticks=True, xlim=(0, time_data), linewidth=0.2, legend=False))
 
     Figure(
         # raster plot of the event inputs spike times
