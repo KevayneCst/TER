@@ -34,10 +34,11 @@ if NB_CONV_LAYERS < 2:
     print("The number of convolution layers should be at least 2")
     quit()
 
-DIRECTIONS = {-1: "INDETERMINATE", 0: "SOUTH-WEST ↙︎", 1: "SOUTH-EAST ↘︎", 2: "NORTH-EAST ↗︎", 3: "NORTH-WEST ↖︎"} # KEY=DIRECTIONS ID ; VALUE=STRING REPRESENTING THE DIRECTION
-NB_DIRECTIONS = min(len(DIRECTIONS)-1, NB_CONV_LAYERS) # No more than available directions, and at least 2 directions. -1 to ignore INDETERMINATE
-OUTPUT_PATH_GENERIC = "./output"
 SIZE_CONV_FILTER = 5
+OUTPUT_PATH_GENERIC = "./output"
+
+DIRECTIONS = {-1: "INDETERMINATE", 1: "SOUTH-WEST ↙︎", 0: "SOUTH-EAST ↘︎", 3: "NORTH-EAST ↗︎", 2: "NORTH-WEST ↖︎"} # KEY=DIRECTIONS ID ; VALUE=STRING REPRESENTING THE DIRECTION
+NB_DIRECTIONS = min(len(DIRECTIONS)-1, NB_CONV_LAYERS) # No more than available directions, and at least 2 directions. -1 to ignore INDETERMINATE
 
 ### Generate input data
 
@@ -337,13 +338,13 @@ class visualiseTime(object):
 
         size_matrix = len(delay_matrix)
         if pred_movement(delay_matrix, range(1, size_matrix), range(1, size_matrix), -1, -1):
-            return 1 # HGBD
+            return 0 # HGBD
         elif pred_movement(delay_matrix, range(size_matrix-2, -1, -1), range(size_matrix-2, -1, -1), 1, 1):
-            return 3 # BDHG
+            return 2 # BDHG
         elif pred_movement(delay_matrix, range(1, size_matrix), range(size_matrix-2, -1, -1), -1, 1):
-            return 0 # HDBG
+            return 1 # HDBG
         elif pred_movement(delay_matrix, range(size_matrix-2, -1, -1), range(1, size_matrix), 1, -1):
-            return 2 # BGHD
+            return 3 # BGHD
         else:
             return -1
 
