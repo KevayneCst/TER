@@ -720,6 +720,76 @@ def spikes_train_to_single_array(spike_train_array):
     return np.sort(total_spikes)
 
 
+class Metrics():
+    def __init__(self):
+        pass
+    def compute_metrics(self):
+        """
+        Will compute the PRECISION, RECALL and F1-SCORE based on the spikes produced in each convolution layers. 
+        We compare whether it was supposed to produce spike or not, in particular in observing the direction of the 
+        input spike and the direction of the layer where the spike is produced, to get the number of TruePositive, FalsePositive, FalseNegative.
+
+        - TruePositive (TP): Spike produced on the right convolution layer
+        - FalsePositive (FP): Spike produced on the convolution layer but direction does not match
+        - FalseNegative (FN): No spike produced but the direction was good
+
+        Then, 
+        - PRECISION = TP / (TP + FP)
+        - RECALL = TP / (TP + FN)
+        - F1-SCORE = 2 * ((PRECISION * RECALL) / (PRECISION + RECALL))
+        """
+        def pickup(input_interval, output_conv_spikes):
+            """
+            From an interval and a list of timing, return every timing within the interval.
+            Timing must be after the beginning of the interval, and cannot exceed 40 (ms) after the end of the interval.
+
+            E.g :
+
+            pickup((300, 800), [400, 300, 600, 900, 840, 839, 301, 275]) => [400, 600, 839, 301]
+            """
+            start, end = input_interval[0], input_interval[1]
+            matching_spikes = []
+            for spike_time in output_conv_spikes:
+                if spike_time > start and spike_time - 40 < end:
+                    matching_spikes.append(spike_time)
+            return matching_spikes
+        
+        if len(conv_to_direction) != NB_DIRECTIONS: # TODO replace by NB_CONV_LAYERS ?
+            print("Cannot compute metrics : the convolution layers did not converge towards a direction in a sufficiently large number")
+            return None
+
+        res = {} # KEY=CONV_ID ; VALUE=[PRECISION, RECALL, F1]
+        conv_variables = {conv_id: [0, 0, 0] for conv_id in range(NB_CONV_LAYERS)} # KEY=COND_ID ; VALUE=[Nb_TruePositive, Nb_FalsePositive, Nb_FalseNegative]
+
+        # Get TP, FP, FN for each interval, for each convolution layer
+        for input_interval, direction_id in input_data.items(): # For each generated input and its direction
+            for conv_id, output_spikes in conv_output_spikes.items(): #
+                TP = FP = FN = 0
+                direction_of_conv = conv_to_direction[conv_id]
+                matching_spikes = pickup(input_interval, output_spikes)
+                if not matching_spikes: # No matching spikes
+                    if direction_id == direction_of_conv: # If it was in the same direction, we should have had a spike
+                        FN += 1 # TODO change this so we increase the number of spikes we get normally (2, 3 or more ?)
+                else:
+                    for _ in matching_spikes:
+                        if direction_id == direction_of_conv:
+                            TP += 1
+                        else:
+                            FP += 1
+                conv_variables[conv_id] = [sum(x) for x in zip(conv_variables[conv_id], [TP, FP, FN])]
+        
+        # Now compute metrics for each layer
+        for conv_id, tp_fp_fn in conv_variables.items():
+            TP, FP, FN = tp_fp_fn[0], tp_fp_fn[1], tp_fp_fn[2]
+            if TP == 0: # Avoid "dividing by zero" exception
+                res[conv_id] = [0, 0, 0]
+            else:
+                PRECISION = TP / (TP + FP)
+                RECALL = TP / (TP + FN)
+                F1 = 2 * ((PRECISION * RECALL) / (PRECISION + RECALL))
+                res[conv_id] = [PRECISION, RECALL, F1]
+        return res
+
 ### Simulation parameters
 
 growth_factor = (0.001/pattern_interval)*pattern_duration # <- juste faire *duration dans STDP We increase each delay by this constant each step
@@ -822,7 +892,7 @@ if options.plot_figure :
 
     # Fill conv_output_spikes with every spike time produced in each convolution layers
     for i in range(NB_CONV_LAYERS):
-        res = spikes_train_to_single_array(Conv_i_spikes[i])
-        conv_output_spikes[i] = res
+        conv_output_spikes[i] = spikes_train_to_single_array(Conv_i_spikes[i])
+    print(Metrics().compute_metrics())
 
     #plt.show()
