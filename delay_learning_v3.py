@@ -753,10 +753,6 @@ class Metrics():
                 if spike_time > start and spike_time - 40 < end:
                     matching_spikes.append(spike_time)
             return matching_spikes
-        
-        if len(conv_to_direction) != NB_DIRECTIONS: # TODO replace by NB_CONV_LAYERS ?
-            print("Cannot compute metrics : the convolution layers did not converge towards a direction in a sufficiently large number")
-            return None
 
         res = {} # KEY=CONV_ID ; VALUE=[PRECISION, RECALL, F1]
         conv_variables = {conv_id: [0, 0, 0] for conv_id in range(NB_CONV_LAYERS)} # KEY=COND_ID ; VALUE=[Nb_TruePositive, Nb_FalsePositive, Nb_FalseNegative]
@@ -890,9 +886,13 @@ if options.plot_figure :
     visu.print_final_filters()
     print("Figures correctly saved as", figure_filename)
 
-    # Fill conv_output_spikes with every spike time produced in each convolution layers
-    for i in range(NB_CONV_LAYERS):
-        conv_output_spikes[i] = spikes_train_to_single_array(Conv_i_spikes[i])
-    print(Metrics().compute_metrics())
+    if len(conv_to_direction) != NB_DIRECTIONS: # TODO replace by NB_CONV_LAYERS ?
+        print("Cannot compute metrics : the convolution layers did not converge towards a direction in a sufficiently large number", flush=True)
+    else:
+        print("Computing metrics...", flush=True)
+        # Fill conv_output_spikes with every spike time produced in each convolution layers
+        for i in range(NB_CONV_LAYERS):
+            conv_output_spikes[i] = spikes_train_to_single_array(Conv_i_spikes[i])
+        print(Metrics().compute_metrics())
 
     #plt.show()
