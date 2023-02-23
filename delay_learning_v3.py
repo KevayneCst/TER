@@ -60,10 +60,11 @@ y_output = y_input - filter_y + 1
 x_margin = y_margin = 4
 
 # Dataset Generation
-
+input_data = {} # KEY=(BEGIN_MVT, END_MVT) ; VALUE=DIRECTION_ID
 input_events = np.zeros((0,4)) # 4 because : x, y, polarity, time
 for t in range(int(time_data/pattern_interval)):
     direction = randint(0, NB_DIRECTIONS-1) # {NB_DIRECTIONS} directions
+    input_data[(t*pattern_interval, t*pattern_interval+(pattern_duration-1))] = direction
     if direction == 0:
         start_x = randint(x_margin, x_input-pattern_duration-x_margin) # We leave a margin of 4 neurons on the edges of the input layer so that the whole movement can be seen by the convolution window
         start_y = randint(y_margin, y_input-pattern_duration-y_margin)
@@ -191,6 +192,8 @@ neuron_activity_tag = [[False for _ in range((x_input-filter_x+1)*(y_input-filte
 # When a convolution layer will be specialized, we put in this dict in which direction
 conv_to_direction = {} # KEY=CONV_ID ; VALUE=DIRECTION_ID
 
+# At the end we will put for every convolution layers the spikes produced
+conv_output_spikes = {}
 
 ### Run simulation
 
@@ -710,6 +713,13 @@ class callbacks_(object):
         return t + self.interval
 
 
+def spikes_train_to_single_array(spike_train_array):
+    total_spikes = np.array([])
+    for spikes in spike_train_array:
+        total_spikes = np.concatenate((total_spikes, np.array(spikes)), axis=0)
+    return np.sort(total_spikes)
+
+
 ### Simulation parameters
 
 growth_factor = (0.001/pattern_interval)*pattern_duration # <- juste faire *duration dans STDP We increase each delay by this constant each step
@@ -809,4 +819,10 @@ if options.plot_figure :
 
     visu.print_final_filters()
     print("Figures correctly saved as", figure_filename)
-    plt.show()
+
+    # Fill conv_output_spikes with every spike time produced in each convolution layers
+    for i in range(NB_CONV_LAYERS):
+        res = spikes_train_to_single_array(Conv_i_spikes[i])
+        conv_output_spikes[i] = res
+
+    #plt.show()
