@@ -37,7 +37,7 @@ if NB_CONV_LAYERS < 2:
 SIZE_CONV_FILTER = 5
 OUTPUT_PATH_GENERIC = "./output"
 
-DIRECTIONS = {-1: "INDETERMINATE", 1: "SOUTH-WEST ↙︎", 0: "SOUTH-EAST ↘︎", 3: "NORTH-EAST ↗︎", 2: "NORTH-WEST ↖︎"} # KEY=DIRECTIONS ID ; VALUE=STRING REPRESENTING THE DIRECTION
+DIRECTIONS = {-1: "INDETERMINATE", 0: "SOUTH-EAST ↘︎", 1: "SOUTH-WEST ↙︎", 2: "NORTH-WEST ↖︎", 3: "NORTH-EAST ↗︎", 4: "EAST →", 5: "SOUTH ↓", 6: "WEST ←", 7: "NORTH ↑"} # KEY=DIRECTIONS ID ; VALUE=STRING REPRESENTING THE DIRECTION
 NB_DIRECTIONS = min(len(DIRECTIONS)-1, NB_CONV_LAYERS) # No more than available directions, and at least 2 directions. -1 to ignore INDETERMINATE
 
 ### Generate input data
@@ -84,6 +84,26 @@ for t in range(int(time_data/pattern_interval)):
         start_x = randint(x_margin, x_input-pattern_duration-x_margin) # We leave a margin of 4 neurons on the edges of the input layer so that the whole movement can be seen by the convolution window
         start_y = randint(y_input-y_margin-1, y_input-pattern_duration)
         input_events = np.concatenate((input_events, [[start_x+d, start_y-d, 1, d+t*pattern_interval] for d in range(pattern_duration)]), axis=0)
+
+    elif direction == 4:
+        start_x = randint(x_margin, x_input-pattern_duration-x_margin)
+        start_y = randint((y_margin + (y_input-y_margin)) // 2, (y_margin + (y_input-y_margin)) // 2)
+        input_events = np.concatenate((input_events, [[start_x+d, start_y, 1, d+t*pattern_interval] for d in range(pattern_duration)]), axis=0)
+    
+    elif direction == 5:
+        start_x = randint((x_margin + (x_input-x_margin)) // 2, (x_margin + (x_input-x_margin)) // 2)
+        start_y = randint(y_margin, y_input-pattern_duration-y_margin)
+        input_events = np.concatenate((input_events, [[start_x, start_y+d, 1, d+t*pattern_interval] for d in range(pattern_duration)]), axis=0)
+
+    elif direction == 6:
+        start_x = randint(x_input-x_margin-1, x_input-pattern_duration)
+        start_y = randint((y_margin + (y_input-y_margin)) // 2, (y_margin + (y_input-y_margin)) // 2)
+        input_events = np.concatenate((input_events, [[start_x-d, start_y, 1, d+t*pattern_interval] for d in range(pattern_duration)]), axis=0)
+
+    elif direction == 7:
+        start_x = randint((x_margin + (x_input-x_margin)) // 2, (x_margin + (x_input-x_margin)) // 2)
+        start_y = randint(y_input-y_margin-1, y_input-pattern_duration)
+        input_events = np.concatenate((input_events, [[start_x, start_y-d, 1, d+t*pattern_interval] for d in range(pattern_duration)]), axis=0)
 
 input_spiketrain, _, _ = ev2spikes(input_events, width=x_input, height=y_input)
 
@@ -322,9 +342,16 @@ class visualiseTime(object):
     def recognize_movement(self, delay_matrix):
         """
         Return an int that indicates the direction in which the input delay matrix has specialized.
-        For the moment, 5 possibles outputs:
-        - 4 diagonals : NORTH-EAST (2) ; SOUTH-EAST (1) ; SOUTH-WEST (3) ; NORTH-WEST (0)
-        - 1 no specialization : INDETERMINATE (-1)
+        For the moment, 9 possibles outputs:
+        - 0 = (SOUTH-EAST ↘︎)
+        - 1 = (SOUTH-WEST ↙︎)
+        - 2 = (NORTH-WEST ↖︎)
+        - 3 = (NORTH-EAST ↗︎)
+        - 4 = (EAST →)
+        - 5 = (SOUTH ↓)
+        - 6 = (WEST ←)
+        - 7 = (NORTH ↑)
+        - -1 = (INDETERMINATE)
         """
         def pred_movement(delay_matrix, rangeI, rangeJ, prevI, prevJ):
             delay_matrix = delay_matrix.copy()
@@ -344,6 +371,7 @@ class visualiseTime(object):
                 return False
             return True
 
+        # Testing diagonals first
         size_matrix = len(delay_matrix)
         if pred_movement(delay_matrix, range(1, size_matrix), range(1, size_matrix), -1, -1):
             return 0 # HGBD
@@ -353,6 +381,17 @@ class visualiseTime(object):
             return 1 # HDBG
         elif pred_movement(delay_matrix, range(size_matrix-2, -1, -1), range(1, size_matrix), 1, -1):
             return 3 # BGHD
+
+        # Then testing the 4 cardinal points
+        half_matrix = size_matrix // 2
+        if pred_movement(delay_matrix, [half_matrix] * size_matrix, range(1, size_matrix), 0, -1):
+            return 4 # MGMD
+        elif pred_movement(delay_matrix, range(1, size_matrix), [half_matrix] * size_matrix, -1, 0):
+            return 5 # MHMB
+        elif pred_movement(delay_matrix, [half_matrix] * size_matrix, range(size_matrix-2, -1, -1), 0, 1):
+            return 6 # MDMG
+        elif pred_movement(delay_matrix, range(size_matrix-2, -1, -1), [half_matrix] * size_matrix, 1, 0):
+            return 7 # MBMH
         else:
             return -1
 
