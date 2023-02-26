@@ -801,18 +801,16 @@ class Metrics():
             for conv_id, output_spikes in conv_output_spikes.items(): #
                 TP = FP = FN = 0
                 direction_of_conv = conv_to_direction[conv_id]
-                matching_spikes = pickup(input_interval, output_spikes)
-                if not matching_spikes: # No matching spikes
+                if not pickup(input_interval, output_spikes): # No matching spikes
                     if direction_id == direction_of_conv: # If it was in the same direction, we should have had a spike
                         FN += 1 # TODO change this so we increase the number of spikes we get normally (2, 3 or more ?)
                 else:
-                    for _ in matching_spikes:
-                        if direction_id == direction_of_conv:
-                            TP += 1
-                        else:
-                            FP += 1
+                    if direction_id == direction_of_conv:
+                        TP += 1
+                    else:
+                        FP += 1
                 conv_variables[conv_id] = [sum(x) for x in zip(conv_variables[conv_id], [TP, FP, FN])]
-        
+
         # Now compute metrics for each layer
         for conv_id, tp_fp_fn in conv_variables.items():
             TP, FP, FN = tp_fp_fn[0], tp_fp_fn[1], tp_fp_fn[2]
