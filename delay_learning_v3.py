@@ -425,7 +425,7 @@ class visualiseTime(object):
                 fig.colorbar(im, ax=curr_matrix, fraction=0.046, pad=0.04) # https://stackoverflow.com/a/26720422
         fig.suptitle('Delays and Weights kernel at t:'+str(t), fontsize=FONTSIZE)
         plt.tight_layout()
-        fig.savefig(SAVED_FILE_NAME)
+        fig.savefig(SAVED_FILE_NAME, dpi=300)
         plt.close() # Avoid getting displayed at the end
 
         self.delay_and_weight_evolution_plot.append(SAVED_FILE_NAME)
