@@ -1,5 +1,22 @@
 # TER
 
+## Installation
+
+### Dependencies
+
+To facilitate the installation, we invite you to use the provided conda environment. You can download conda [here](https://docs.conda.io/projects/conda/en/stable/user-guide/install/index.html).
+
+In a terminal, run the following command : 
+
+`conda env create -f ter_conda_env.yml`
+
+### Run the program
+
+In a terminal, once in the folder containing the script code <i>delay_learning_v3.py</i>, run the following command by replacing <i>[NUMBER_OF_CONVOLUTION]</i> by a number (preferably 2, 4 or 8) : 
+
+`python3 delay_learning_v3.py nest --plot-figure --nb-convolution [NUMBER_OF_CONVOLUTION]`
+
+
 ## Description
 
 Spiking Neural Networks (SNN) represent a special class of artificial neural networks, where neurons communicate by sequences of spikes [Ponulak, 2011]. Contrary to deep convolutional networks, spiking neurons do not fire at each propagation cycle, but rather fire only when their activation level (or membrane potential, an intrinsic quality of the neuron related to its membrane electrical charge) reaches a specific threshold value. Therefore, the network is asynchronous and allegedly likely to handle well temporal data such as video. When a neuron fires, it generates a non-binary signal that travels to other neurons, which in turn increases their potentials. The activation level either increases with incoming spikes, or decays over time. Regarding inference, SNN does not rely on stochastic gradient descent and backpropagation. Instead, neurons are connected through synapses, that implement learning mechanisms inspired from biology for updating synaptic weights (strength of connections) or delays (propagation time for an action potential).
