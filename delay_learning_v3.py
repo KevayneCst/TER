@@ -42,7 +42,7 @@ NB_DIRECTIONS = min(len(DIRECTIONS)-1, NB_CONV_LAYERS) # No more than available 
 
 ### Generate input data
 
-time_data = 30_000 # TODO de base 1e6, à réduire pour tests
+time_data = 15_000 # TODO de base 1e6, à réduire pour tests
 temporal_reduction = 1_000
 pattern_interval = 100
 pattern_duration = 5
