@@ -4,6 +4,15 @@
 
 ### Dependencies
 
+#### EvData code
+
+The code uses functions from [this](https://github.com/amygruel/EvData) repository, made by @amygruel.
+Once her repository is cloned, please modify :
+- The link [here](https://github.com/KevayneCst/TER/blob/main/delay_learning_v3.py#L14) by the absolute link to where you have put the "translate_2_formats " folder. (This folder is inside the EvData repository)
+- The link [here](https://github.com/amygruel/EvData/blob/master/translate_2_formats/events2spikes.py#L19) by the absolute link to where you have put the "read_event_data" folder. (This folder is inside the EvData repository)
+
+#### Other packages
+
 To facilitate the installation, we invite you to use the provided conda environment. You can download conda [here](https://docs.conda.io/projects/conda/en/stable/user-guide/install/index.html).
 
 In a terminal, run the following command : 
